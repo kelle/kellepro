@@ -1,8 +1,0 @@
-PRO pm_util, pm_tot, phi, pm_ra, pm_dec
-
-phi = 90 + PA
-
-pm_ra = -pm_tot * cos(phi*180/3.14)
-pm_dec = pm_tot * sin(phi*180/3.14)
-
-END
