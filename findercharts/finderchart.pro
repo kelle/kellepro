@@ -1,0 +1,126 @@
+PRO finderchart,obj,select=selectIt,sa=siga,sb=sigb,sc=sigc,sd=sigd
+;+
+; NAME:
+;	ROUTINE_NAME
+;
+; PURPOSE:
+;	Try to use the active, present tense. (Measure the foobar of...)
+;
+; CALLING SEQUENCE:
+;
+;       FINDERCHART, Object, [ /select, /sa, /sb, /sc, /sd]
+;
+; INPUTS:
+;	Object:	String containing reference number of object.
+;
+; KEYWORD PARAMETERS:
+;	SELECT:	     Set this keyword to interactively select the
+;	             object in J and K band. Default is to use the
+;                    center of the field.
+;
+;	SA,SB,SC,SD: Set any of these keywords to enhance the contrast
+;	             of a given band using the SIGRANGE function.
+;
+; OUTPUTS:
+;       This procedure produces postscript findercharts.
+;
+; RESTRICTIONS:
+;	Describe any "restrictions" here.  Delete this section if there are
+;	no important restrictions.
+;
+; PROCEDURE:
+;	You can describe the foobar superfloatation method being used here.
+;	You might not need this section for your routine.
+;
+; ROUTINES CALLED:
+;       SIGRANGE
+;       GET_FILE
+;       PLOTFINDER
+;
+; EXAMPLE:
+;	Please provide a simple example here. An example from the PICKFILE
+;	documentation is shown below. Please try to include examples that
+;       do not rely on variables or data files that are not defined in
+;       the example code. Your example should execute properly if typed
+;       in at the IDL command line with no other preparation.
+;
+;	Create a PICKFILE widget that lets users select only files with 
+;	the extensions 'pro' and 'dat'.  Use the 'Select File to Read' title 
+;	and store the name of the selected file in the variable F.  Enter:
+;
+;		F = PICKFILE(/READ, FILTER = ['pro', 'dat'])
+;
+; FUTURE MODIFICATIONS:
+;	List here anything that you want to add in the future.
+;
+; MODIFICATION HISTORY:
+; 	Written by:	Kelle Cruz, August 2005
+;-
+
+PRO TEMPLATE
+
+if N_params() lt 1 then begin
+     print,'Syntax -  FINDERCHART, Object, [ /SELECT, /SA, /SB, /SC, /SD]'
+     print,'Object is string with reference number'
+     print,'Expects images/ subdirectory in current directory'
+     print,'to contain XDSS R and I and 2MASS J and K FITS images.'
+     return
+endif
+
+a=readfits(GET_FILE(obj,'images',str='r_o'),hr)
+b=readfits(GET_FILE(obj,'images',str='i_o'),hi)
+c=readfits(GET_FILE(obj,'images',str='J'),hj)
+d=readfits(GET_FILE(obj,'images',str='K'),hk)
+
+med_image=median(a)
+w = where(finite(a,/nan) OR a eq 0,count)
+if count gt 0 then a[w] = med_image
+
+med_image=median(b)
+w = where(finite(b,/nan) OR b eq 0,count)
+if count gt 0 then b[w] = med_image
+
+med_image=median(c)
+w = where(finite(c,/nan) OR c eq 0,count)
+if count gt 0 then c[w] = med_image
+
+med_image=median(d)
+w = where(finite(d,/nan) OR d eq 0,count)
+if count gt 0 then d[w] = med_image
+
+IF keyword_set(siga) THEN a=sigrange(a) ;pick out most significant data range (enhance contrast)
+IF keyword_set(sigb) THEN b=sigrange(b)
+IF keyword_set(sigc) THEN c=sigrange(c)
+IF keyword_set(sigd) THEN d=sigrange(d)
+
+loadct, 0
+aspect_ratio=17780./24130.
+
+set_plot,'x'
+window, 0, xsize=1000, ysize=1000*aspect_ratio
+
+plotfinder,a,b,c,d,obj
+
+IF keyword_set(selectit) THEN begin
+  ;cursor,c1,c2,/up,/normal
+  ;plotfinder,a,b,c,d,obj,c1=c1,c2=c2
+  ;cursor,c3,c4,/up,/normal
+  ;plotfinder,a,b,c,d,obj,c1=c1,c2=c2,c3a=c3,c4a=c4
+   cursor,c5,c6,/up,/normal
+   plotfinder,a,b,c,d,obj,c5a=c5,c6a=c6
+   cursor,c7,c8,/up,/normal
+   plotfinder,a,b,c,d,obj,c5a=c5,c6a=c6,c7a=c7,c8a=c8
+endif
+
+
+set_plot, 'ps'
+device, file=obj+'_finder.ps',/landscape,bits_per_pixel=8,/Helvetica
+
+IF keyword_set(selectit) THEN begin
+   plotfinder,a,b,c,d,obj,c5a=c5,c6a=c6,c7a=c7,c8a=c8
+ENDIF ELSE plotfinder,a,b,c,d,obj
+
+device, /close
+set_plot,'x'
+
+END

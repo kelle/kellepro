@@ -1,0 +1,70 @@
+
+PRO skysub, key, object
+;v1
+
+version = 'v1'
+
+;uses readfits, writefits
+
+if N_params() lt 2 then begin
+     print,'   Syntax -  SKYSUB, key, object'
+     print, ''
+     print,'   key is numbers'
+     print,'   object is string or number'
+     print,'   output to /data/hillary/3/kelle/ir_spectra/irs/S12/skysub/'
+     return
+endif
+
+key=strn(key)
+object=strn(object)
+
+raw_dir='/data/hillary/6/kelle/Spitzer_raw/Cycle1/IRS/S12/r'+key+'/ch0/bcd/'
+out_dir='/data/hillary/3/kelle/ir_spectra/irs/S12/skysub/'
+
+bcd_files = FILE_SEARCH(raw_dir,'*bcd.fits')
+mask_files =FILE_SEARCH(raw_dir,'*bmask.fits',COUNT=num_files)
+unc_files =FILE_SEARCH(raw_dir,'*func.fits')
+
+;get rid of peakup images
+pu_files = STRMATCH(bcd_files,'*_000[0-1]_000?*')
+bcd_files = bcd_files[where(pu_files eq 0)]
+
+num_ptns = strmid(bcd_files[num_files-1], 87,4)-1
+ncycles = num_files/num_ptns
+
+;print, 'num_files:',num_files
+;print, 'num_ptns:',num_ptns
+;print, 'ncycles:',ncycles
+
+FOR i = 0,num_files/2-1 DO BEGIN
+
+j=i+ncycles*2
+
+a=READFITS(bcd_files[i],hdr_a)
+b=READFITS(bcd_files[j],hdr_b)
+
+
+sl2=a-b
+sl1=b-a
+
+hist='SKYSUB '+ version + ', ran ' + systime(0)
+SXADDHIST, hist, hdr_a
+SXADDHIST, hist, hdr_b
+
+WRITEFITS, out_dir+object+'_sl2_'+strn(i)+'_bcd.fits' , sl2, hdr_a
+WRITEFITS, out_dir+object+'_sl1_'+strn(i)+'_bcd.fits' , sl1, hdr_b
+
+FILE_COPY, mask_files[i], out_dir+object+'_sl2_'+strn(i)+'_bmask.fits', /OVERWRITE
+FILE_COPY, mask_files[i], out_dir+object+'_sl2_'+strn(i)+'_func.fits', /OVERWRITE
+
+FILE_COPY, mask_files[j], out_dir+object+'_sl1_'+strn(i)+'_bmask.fits', /OVERWRITE
+FILE_COPY, mask_files[j], out_dir+object+'_sl1_'+strn(i)+'_func.fits', /OVERWRITE
+
+;print, i
+;print, files[i]
+;print, files[i+ncycles*2]
+;print,''
+
+ENDFOR
+
+END

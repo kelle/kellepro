@@ -1,0 +1,13 @@
+PRO ab_avg
+
+;ab_avg, '5[2,4,6],60'
+input = ['5[2,4,6]','60']
+
+files=''
+
+for i=0,n_elements(input) DO BEGIN
+    a=file_search('*input[i]*)
+    files=files+a
+endfor
+
+END

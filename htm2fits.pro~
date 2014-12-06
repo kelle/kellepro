@@ -1,0 +1,23 @@
+PRO HTM2FITS, FitsPath, Object, before, after
+
+;expect two columns of wavelength and flux
+
+RDFLOAT,FitsPath,w,flux,silent=silent
+
+pixel_size=w[2]-w[1]
+
+MKHDR, h, flux
+SXADDPAR, h, 'OBJECT', object, BEFORE='COMMENT'
+SXADDPAR, h, 'TELESCOP', 'Keck I', BEFORE='COMMENT'
+SXADDPAR, h, 'CRVAL1', w[0], BEFORE='COMMENT'
+SXADDPAR, h, 'CD1_1', pixel_size, BEFORE='COMMENT'
+
+SXADDHIST, 'Original file: '+FitsPath, h
+SXADDHIST, 'Created with htm2fits.pro by Kelle Cruz', h
+
+if before ne '' then before=string(before)+'_'
+newfitsfile=before+object+'_'+string(after)+'.fits'
+
+WRITEFITS, newfitsfile, flux, h
+
+END

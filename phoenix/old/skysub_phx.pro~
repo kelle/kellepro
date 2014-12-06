@@ -1,0 +1,33 @@
+PRO coadd_phx
+
+raw_dir='/scr6/kelle/nir_highres_raw/phoenix/GS-07B/'
+work_dir='/scr3/kelle/nir_highres/phoenix/GS-07B/processed/'
+
+
+files=[file_search(raw_dir+'*5[4-9]*'),file_search(raw_dir+'*6[0-1]*')]
+nfiles=8
+
+image=readfits(files[0],header)
+label = 'COADD_PHX: ' 
+sxaddhist, label + strmid(systime(),4,20) ,header
+
+FOR i=0,nfiles-1 do begin
+    image1=readfits(files[i])
+    image2=readfits(files[i+1])
+;    if i eq 0 then sum=image else sum=sum+image
+    new1=image1-image2
+    new2=image2-image1
+
+   sxaddhist, label + files[i],header
+endfor
+
+;ROTATE
+direction=1
+rot_sum=rotate(sum,direction)
+;Add History to Header
+sxaddhist, label + ' Image = ROTATE(Image,' + strtrim(direction,2) + ')',header
+
+tv, rot_sum
+writefits, work_dir+'sum.fits',rot_sum,header
+
+END

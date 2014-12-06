@@ -1,0 +1,40 @@
+PRO temp_compare
+
+
+version='v1'
+;root= '/scr3/ljm/'
+root='/scr2/kelle/idl/kellepro/Lauren/'
+out_dir=root+'idl/plots/'
+
+;-----------------
+;Read in output of GoodFits.
+; outdata.txt
+;-----------------
+
+
+RESTORE, root+'pro/NIR_data_template_plots.sav'
+NIR_data_plots=READ_ASCII('outdata.txt', TEMPLATE=NIR_data_template_plots)
+model_data=NIR_data_plots.field1
+chisqu=NIR_data_plots.field2
+teff_model=NIR_data_plots.field3
+fsed=NIR_data_plots.field4
+grav=NIR_data_plots.field5
+ref_num_model=NIR_data_plots.field6
+sp_type=NIR_data_plots.field7
+
+
+;-----------------
+;Read in observed temps from Golimowski, etc
+; obs_temp.txt
+;-----------------
+
+
+
+READCOL, root+'obs_temp.txt', ref_num_obs, teff_obs, paper, comment='#', format='f,f,a'
+
+
+
+
+
+
+END

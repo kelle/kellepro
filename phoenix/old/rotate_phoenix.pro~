@@ -1,0 +1,24 @@
+PRO rotate_phoenix
+
+; Rotates Phoenix data 90 deg for reduction with REDSPEC
+; Written Feb 23, 2009, Kelle Cruz
+
+files=file_search('*.fits',count=n_files)
+
+direction=1
+
+FOR i=0,n_files-1 DO BEGIN
+    raw_image=readfits(files[i],header)
+    rot_image=rotate(raw_image,direction)
+
+;Add History to Header
+    label = 'ROTATE_PHOENIX:' + strmid(systime(),4,20)
+    sxaddhist, label + ' Image = ROTATE(Image,' + strtrim(direction,2) + ')',header
+
+    newfile='rot_'+files[i]
+    
+    writefits, newfile,rot_image,header
+
+ENDFOR
+
+END

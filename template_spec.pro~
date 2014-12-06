@@ -1,0 +1,429 @@
+;+
+; NAME:
+;	TEMPLATE_SPEC
+;
+; PURPOSE:
+;	Template for making plots of both optical and nir spectra.
+;
+; CALLING SEQUENCE:
+;	
+;	TEMPLATE, [/PS, /EPS, /MICRON]
+;
+;	
+; KEYWORD PARAMETERS:
+;	PS: Create postscript figure. 
+;		Output file called 'template.ps'
+;
+;   EPS: Create encapsulated postscript figure. 
+;		Output file called 'template.eps'
+;
+; OUTPUTS:
+;	Plots to screen if no keywords are given.
+;	Creates template.ps or template.eps depending on keyword  used.
+;
+; ROUTINES CALLED:
+;	kellepro:colors_kc.pro
+;	kellepro:symbols_kc.pro
+;	kellepro:symbols_ps_kc.pro
+;
+; EXAMPLE:
+;
+;	Plot to screen
+;
+;		TEMPLATE_FIG
+;
+;	Create postscript output
+;
+;		TEMPLATE_FIG, /ps
+;
+;
+; MODIFICATION HISTORY:
+; 	Written by:	Kelle Cruz, November 2007
+;
+;-
+
+PRO TEMPLATE_SPEC, ps=ps,eps=eps
+
+outfile_root='template_spec'
+
+root='/scr2/kelle/young/spectra_plots/sequence/'
+datapath='/scr/kelle/optical_spectra/2M_all/fits/'
+
+;----------
+; Spectral Standards
+;-----------
+
+L0=KREADSPEC(datapath+'U20165_0345+2540_lris.fits',h0345,/norm)
+L1=KREADSPEC(datapath+'LSR0602.fits',h0602,/norm)
+;L2=KREADSPEC(datapath+'U11122_1305-2541_kelu1_lris.fits',hkelu1,/norm)
+L2=KREADSPEC(datapath+'u10764.fits',h764,/norm)
+L3=KREADSPEC(datapath+'U11291_1506+1321_lris.fits',h1506,/norm)
+L4=KREADSPEC(datapath+'U50075_1155+2307_lris.fits',h1155,/norm)
+;L5=KREADSPEC(datapath+'U11296_1507-1627_lris.fits',h1507,/norm)
+L5=KREADSPEC(datapath+'U10601_0652+4710.fits',h601,/norm)
+L6=KREADSPEC(datapath+'U10770_0850+1057_lris.fits',h0850,/norm)
+2M0141=KREADSPEC(datapath+'U20076.fits',h0141,/norm)
+
+;-----------
+
+if keyword_set(ps) then begin
+    ext='.ps'
+endif else begin
+    if keyword_set(eps) then begin
+        ps = 1
+        ext='.eps'
+    endif
+endelse
+
+xsize=8.89 ; 1 column wide
+xsize=18.6267 ; 2 column wide 44 pica
+ysize=xsize*1
+scale=1
+aspect_ratio=ysize/xsize
+
+xsize_window=500 ;in pixels
+
+@colors_kc ;load lots of colors
+
+;-----------
+
+IF KEYWORD_SET(ps) THEN BEGIN
+    !p.font=0 
+    set_plot, 'ps'
+    device, filename=root+outfile_root+ext, encapsulated=keyword_set(eps), $
+            /helvetica,/isolatin1,$
+            landscape=0, color=1, xsize=xsize, ysize=ysize, scale=scale,$
+            xoffset=1, yoffset=1
+    @symbols_ps_kc
+ENDIF ELSE BEGIN
+    set_plot,'x'
+    device, Decomposed=0        ;make colors work for 24-bit display
+    black=white ;exchange colors to work with default black backround
+    @symbols_kc
+    window, xsize=xsize_window, ysize=xsize_window*aspect_ratio,xpos=0,ypos=0
+ENDELSE
+
+!p.thick=4
+!x.thick=3
+!y.thick=3
+
+o1=9.35 ; top of offset
+
+plot, [0],[0],/nodata, xr=[6000,9800],  yr=[-0.25,o1+1.5], $
+      xstyle=1, ystyle=1,xmargin=[6,3],$
+      xtitle='Wavelength ('+angstrom+')', ytitle='Normalized Flux + Constant'
+
+; character sizes
+cs=STR_SIZE('2M 2213+19',0.20)
+cs2=cs/2
+;label locations
+lo=0.4 ; label offset from data
+xt=6450. ; x location of label
+
+oplot,L0[0,*],  L0[1,*]+o1, color=purple
+xyouts, xt,o1+lo,'L0 Standard!C2M 0345',charsize=cs
+
+o1=o1-0.45
+oplot,U20076[0,*],  U20076[1,*]+o1, color=red
+xyouts, xt,o1+lo,'L0!C2M 0141-46!C'+sxpar(h76,'object') ,charsize=cs
+
+;--------
+;OPTICAL/ANGSTROMS FEATURE LABELS
+;--------
+
+;Halpha
+    xyouts, 6530, 0.8+shift, 'H!9a!X' ;, charsize=1.2
+    oplot, [6563,6563],[0.9,1.7]+shift, linestyle=1 
+    oplot, [6563,6563],[0.0,0.7]+shift, linestyle=1 
+
+;Li
+shift=0.0
+xyouts, 6680, 0.8+shift, 'Li !7I!X',charsize=cs;, charsize=1.2
+oplot, [6708,6708],[1.0,1.2]+shift, linestyle=1
+
+;VO
+    oplot,[7350., 7350,7370,7370],[0,21,21,0], linestyle =1
+    oplot,[7550.,7550., 7570, 7570],[0,21,21,0], linestyle =1
+    oplot,[7430.,7430., 7470, 7470],[0,21,21,0], linestyle =1
+    xyouts, 7550, 22, 'VO-a',align=0.5
+    
+    oplot,[7860., 7860,7880,7880],[0,21,21,0], linestyle =1
+    oplot,[8080.,8080., 8100, 8100],[0,21,21,0], linestyle =1
+    oplot,[7960.,7960., 8000, 8000],[0,21,21,0], linestyle =1
+    xyouts, 8000, 22, 'VO-b',align=0.5
+
+;K
+    oplot, [0.7665,0.7665],[1.05,1.15]+tk1, linestyle=1
+    oplot, [0.7699,0.7699],[1.05,1.15]+tk1, linestyle=1
+    xyouts, 0.76,1.17+tk1,'K !7I!X',align=0.5
+
+;Na I
+shift=-0.55
+xyouts, 8190, 0.8+shift, 'Na !7I!X', charsize=cs,align=0.5
+oplot, [8183,8183],[1.0,1.2]+shift, linestyle =1
+oplot, [8195,8195],[1.0,1.2]+shift, linestyle =1
+
+
+;Cs I
+shift=-0.6
+xyouts, 8520, 0.8+shift, 'Cs !7I!X', align=0.5,charsize=cs;, charsize=1.2
+xyouts, 8940, 0.8+shift, 'Cs !7I!X', align=0.5,charsize=cs;, charsize=1.2
+
+oplot, [8521,8521],[1.0,1.2]+shift, linestyle =1
+oplot, [8943,8943],[1.0,1.2]+shift, linestyle =1
+
+;Rb I
+shift=0.15
+xyouts, 7800, 0.8+shift, 'Rb !7I!X',charsize=cs, align=0.5;, charsize=1.2
+xyouts, 7948, 0.8+shift, 'Rb !7I!X',charsize=cs, align=0.5;, charsize=1.2
+
+oplot, [7800,7800],[1.0,1.2]+shift, linestyle =1
+oplot, [7948,7948],[1.0,1.2]+shift, linestyle =1
+
+;TiO
+shift=9.2
+xyouts, 8550, 1.1+shift, 'TiO', charsize=cs,align=1
+oplot, [8432,8550],[1.0,1.0]+shift, linestyle=1
+oplot, [8432,8432],[0.8,1.0]+shift, linestyle=1
+
+;CrH
+shift1=7.15
+xyouts, 8675, 1.2+shift1, 'CrH', charsize=cs,align=1
+oplot, [8611,8611],[0.8,1.1]+shift1, linestyle=1
+oplot, [8611,8675],[1.1,1.1]+shift1, linestyle=1
+
+;Ca II triplet
+oplot, [8498,8498],[1.0,1.95]+shift, linestyle=1
+oplot, [8542,8542],[1.0,1.95]+shift, linestyle=1
+oplot, [8662,8662],[1.0,1.95]+shift, linestyle=1
+xyouts, 8490, 2.0+shift, 'Ca !7II!X'
+
+;FeH
+shift2=shift1+0.15
+xyouts, 8685, 1.2+shift2, 'FeH', charsize=cs,align=0
+oplot, [8691,8691],[0.8,1.1]+shift2, linestyle=1
+oplot, [8691,8760],[1.1,1.1]+shift2, linestyle=1
+
+;Terrestiral Water Abosorption
+polyfill,[9200,9650,9650,9200],[2,2,13.5,13.5], color=ltgrey
+;plots,[9300,9650],[2,2]
+xyouts, 9425,1.7,oplus, align=0.5
+xyouts, 9425,13.6,oplus, align=0.5
+
+;--------
+;NIR/MICRONS FEATURE LABELS
+;--------
+
+if keyword_set(microns) then begin
+
+
+;Na I
+    oplot, [8183,8183]/1e4,[0.65,23.5], linestyle =1
+    oplot, [8195,8195]/1e4,[0.65,23.5], linestyle =1
+    xyouts, 8190/1e4, ltop, 'Na !7I!X',align=0.5 ;, charsize=1.2
+
+;Li
+    oplot, [6708,6708]/1e4,[0,24], linestyle =1
+    xyouts, 6708/1e4, 11, 'Li !7I!X',align=0.5 ;, charsize=1.2
+
+;VO
+    oplot,[7350., 7350,7370,7370]/1e4,[0,21,21,0], linestyle =1
+    oplot,[7550.,7550., 7570, 7570]/1e4,[0,21,21,0], linestyle =1
+    oplot,[7430.,7430., 7470, 7470]/1e4,[0,21,21,0], linestyle =1
+    xyouts, 7550, 22, 'VO-a',align=0.5
+    
+    oplot,[7860., 7860,7880,7880]/1e4,[0,21,21,0], linestyle =1
+    oplot,[8080.,8080., 8100, 8100]/1e4,[0,21,21,0], linestyle =1
+    oplot,[7960.,7960., 8000, 8000]/1e4,[0,21,21,0], linestyle =1
+    xyouts, 8000, 22, 'VO-b',align=0.5
+
+;K
+    oplot, [0.7665,0.7665],[1.05,1.15]+tk1, linestyle=1
+    oplot, [0.7699,0.7699],[1.05,1.15]+tk1, linestyle=1
+    xyouts, 0.76,1.17+tk1,'K !7I!X',align=0.5
+
+;Na I
+        oplot, [8183,8183]/1e4,[lbot,ltop], linestyle =1
+        oplot, [8195,8195]/1e4,[lbot,ltop], linestyle =1
+        xyouts, 8190/1e4, ltop+lo, 'Na !7I!X',align=0.5
+
+;TiO
+    oplot, [0.8432,0.86],[1.15,1.15]+tk1 ;, linestyle=1
+    oplot, [0.8432,0.8432],[1.10,1.15]+tk1
+    xyouts, 0.82,1.18+tk1,'TiO'
+
+;CrH
+    oplot, [0.8611,0.88],[1.25,1.25]+tk1 ;, linestyle=1
+    oplot, [0.861,0.861],[1.20,1.25]+tk1
+;oplot, [0.99,1.085],[2.0,2.0]+tk1, linestyle=1
+    xyouts, 0.855,1.28+tk1,'CrH'
+
+;FeH
+    oplot, [0.8692,0.89],[1.4,1.4]+tk1 ;, linestyle=1
+    oplot, [0.8692,0.8692],[1.35,1.4]+tk1
+;oplot, [0.99,1.085],[2.0,2.0]+tk1, linestyle=1
+    xyouts, 0.865,1.43+tk1,'FeH',align=0.5
+
+;Ca II triplet
+oplot, [8498,8498]/1e4,[1.0,1.95]+shift, linestyle=1
+oplot, [8542,8542]/1e4,[1.0,1.95]+shift, linestyle=1
+oplot, [8662,8662]/1e4,[1.0,1.95]+shift, linestyle=1
+xyouts, 8490/1e4, 2.0+shift, 'Ca !7II!X'
+
+;H20
+    oplot, [0.91,0.95],[1.6,1.6]+tk1 ;, linestyle=1
+    xyouts, 0.915, 1.65+tk1,'H2O'
+    
+;FeH
+    oplot, [0.986,0.99],[2.0,2.0]+tk1 ;, linestyle=1
+    oplot, [0.986,0.986],[1.95,2.0]+tk1
+    oplot, [0.99,1.085],[2.0,2.0]+tk1, linestyle=1
+    xyouts, 0.985,2.05+tk1,'FeH',align=0.5
+    
+;VO
+    oplot, [1.05,1.08],[1.75,1.75]+tk1 ;, linestyle=1
+    xyouts, 1.05,1.80+tk1,'VO',align=0.5
+
+;Na
+    oplot, [1.138,1.138],[1.7,1.85]+tk1, linestyle=1
+    oplot, [1.141,1.141],[1.7,1.85]+tk1, linestyle=1
+    xyouts, 1.13,1.9+tk1,'Na !7I!X',align=0.5
+
+;K
+    oplot, [1.169,1.169],[1.7,1.85]+tk1, linestyle=1
+    oplot, [1.178,1.178],[1.7,1.85]+tk1, linestyle=1
+    oplot, [1.169,1.178],[ltop,ltop], linestyle=0
+    xyouts, 1.17,1.87+tk1,'K !7I!X',align=0.5
+
+;FeH
+    oplot, [1.19,1.205],[2.0,2.0]+tk1 ;, linestyle=1
+    oplot, [1.19,1.19],[1.95,2.0]+tk1
+    xyouts, 1.185,2.05+tk1,'FeH'
+
+;FeH
+    oplot, [1.24,1.27],[2.15,2.15]+tk1 ;, linestyle=1
+    oplot, [1.24,1.24],[2.10,2.15]+tk1
+    oplot, [1.27,1.33],[2.15,2.15]+tk1, linestyle=1
+    xyouts, 1.23,2.20+tk1,'FeH'
+
+;K
+    oplot, [1.243,1.243],[1.85,2.0]+tk1, linestyle=1
+    oplot, [1.252,1.252],[1.85,2.0]+tk1, linestyle=1
+    oplot, [1.244,1.253],[ltop,ltop], linestyle=0 ;K I     
+    xyouts, 1.243,2.03+tk1,'K !7I!X',align=0.5
+
+;PaB
+
+
+;H2O
+    oplot, [1.3,1.51],[2.1,2.1]+tk1 ;, linestyle=1
+    xyouts, 1.38, 2.15+tk1,'H2O'
+
+;K
+    oplot, [1.517,1.517],[1.75,1.9]+tk1, linestyle=1
+    xyouts, 1.51,1.95+tk1,'K !7I!X',align=0.5
+
+;FeH
+    oplot, [1.59,1.75],[2.05,2.05]+tk2, linestyle=1
+    xyouts, 1.65,2.1+tk2,'FeH'
+
+;H2O
+    oplot, [1.75,2.05],[1.85,1.85]+tk2 ;, linestyle=1
+    xyouts, 1.85, 1.9+tk2,'H2O'
+
+;Ca
+    oplot, [1.93,1.99],[1.7,1.7]+tk2, linestyle=1
+    xyouts, 1.94, 1.75+tk2,'Ca'
+
+;Na
+    oplot, [2.206,2.206],[1.7,1.8]+tk2, linestyle=1
+    oplot, [2.2089,2.2089],[1.7,1.8]+tk2, linestyle=1
+    xyouts, 2.19, 1.83+tk2,'Na !7I!X',align=0.5
+
+;CO
+    oplot, [2.29,2.35],[1.65,1.65]+tk2 ;, linestyle=1
+    xyouts, 2.3, 1.70+tk2,'CO'
+
+;H2O
+    oplot, [2.3,3.2],[1.8,1.8]+tk2 ;, linestyle=1
+    xyouts, 2.3, 1.85+tk2,'H2O'
+
+;Ch4
+    oplot, [1.1,1.24],[1.3,1.3] ;, linestyle=1
+    xyouts, 1.14,1.35,'CH4'
+
+ ;Ch4
+    oplot, [1.6,1.8],[1.3,1.3]  ;, linestyle=1
+    xyouts, 1.67,1.35,'CH4'
+
+ ;Ch4
+    oplot, [2.15,2.5],[1.2,1.2] ;, linestyle=1
+    xyouts, 2.3, 1.25,'CH4'
+
+endif ; end spectral feature labels in MICRONS
+
+IF KEYWORD_SET(ps) THEN device,/close
+
+;-----------
+; LOG PLOT
+;----------
+IF KEYWORD_SET(ps) THEN device, file=root+'seq_nir'+ext ELSE $
+  window, 1,xsize=xsize_window, ysize=xsize_window*aspect_ratio,xpos=0+xsize_window,ypos=0
+
+plot, [0],[0],/nodata, xr=[6000,9800], yr=[1,2e6],$
+       xstyle=1, ystyle=1,xmargin=[6,3],$
+      xtitle='Wavelength ('+angstrom+')', $
+      ytitle='Normalized Flux !9'+times+'!X Constant',/ylog
+
+;-----------
+; LOG FEATURES
+;----------
+
+;Cs
+shift=4*1e1
+xyouts, 8521, shift, 'Cs !7I!X', charsize=cs, align=0.5
+oplot, [8521,8521],[1.4,2.2]*shift, linestyle=1
+;oplot, [8521,8521],[0.2,5.5]+shift, linestyle=1
+
+;Cs
+shift=6.5*1e1
+xyouts, 8943, shift, 'Cs !7I!X', charsize=cs, align=0.5
+oplot, [8943,8943],[1.4,2.2]*shift, linestyle=1
+;oplot, [8943,8943],[0.2,5.6]*shift, linestyle=1
+
+
+;CrH
+shift=1e4
+xyouts, 8660, 6.5*shift, 'CrH', charsize=cs, align=1
+plots,8611,4.7*shift
+plots,8611,6.2*shift,/continue, linestyle=1
+plots,8690, 6.2*shift, /continue, linestyle=1
+
+
+;FeH
+shift=1e4
+xyouts, 8691, 7.9*shift, 'FeH', charsize=cs, align=0.2
+plots,8691,5.3*shift
+plots,8691,7*shift,/continue, linestyle=1
+plots,8750, 7*shift, /continue, linestyle=1
+
+
+;H20
+shift=1e4
+xyouts, 9325, 1.4*shift, 'H!D2!NO', charsize=cs, align=0.5
+xyouts, 9325, 1.0*shift, '!9'+string(197B)+'!X', align=0.5, charsize=cs
+oplot, [9200,9450],[1.25,1.25]*shift, linestyle=1
+
+xyouts, 0.5,-0.5, test_string, color=blue,charsize=cs 
+
+
+IF KEYWORD_SET(ps) THEN BEGIN
+ device,/close
+ set_plot,'x'
+ !p.font=-1 ;go back to default (Vector Hershey fonts)
+ENDIF
+
+loadct,0 ;go back to default greyscale color table
+
+END
+

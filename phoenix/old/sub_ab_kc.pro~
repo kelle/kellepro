@@ -1,0 +1,24 @@
+pro sub_ab
+
+;, a_file,b_file
+
+files=FILE_SEARCH('*.fits')
+a_file=files[0]
+b_file=files[1]
+
+a=readfits(a_file)
+b=readfits(b_file)
+
+i=a-b
+j=b-a
+
+out=fltarr(1024,256)
+
+out[*,0:150]=j[*,0:150]
+out[*,151:255]=i[*,151:255]
+
+writefits,'sub.fits',out
+
+MESSAGE, 'WROTE sub.fits using ', a_file,b_file
+
+END

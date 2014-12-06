@@ -1,0 +1,26 @@
+IF yes EQ 1 THEN BEGIN
+   i=0
+   x=dblarr(151)
+   y=x
+   FOR bin100= 50,200,1 DO begin
+      bin=0.001234+bin100/1000.D
+; m33=area(new_ra, new_dec, 8.0, 13.0, 38, 44,bin,'m33')
+; tau=area(new_glon, new_glat, 153,190,-26,-7,bin,'tau')
+;m31=area(new_ra, new_dec, 22.5, 24.5, 30, 31.5, bin, 'm31')
+; m33=area(new_ra, new_dec, 8.5, 12.0, 38.5, 43.0,bin,'m33')
+      tau=area(new_glon, new_glat, 153.5,189.6,-25.5,-7,bin,'tau')
+      x[i]=bin
+      y[i]=tau                  ;m33
+      i=i+1
+   ENDFOR
+
+   !p.multi=0
+   set_plot,'ps'
+   device, file='tau.ps', /portrait
+   plot, x,y,/ynozero,psym=1
+;area=7.87
+   area=1.533
+   oplot, [0,0.6],[area,area]
+   device,/close
+   set_plot,'x'
+ENDIF

@@ -1,0 +1,105 @@
+PRO SED_MAKE, obj, nir_scale, norm=norm, fnu=fnu, w_opt, f_opt, w_nir, f_nir, w_ir, f_ir, yunits
+
+;Returns either ergs/s/cm^2/A
+; or mJy if /fnu is set
+
+;if N_params() lt 1 then begin
+;     print,'Syntax -  MAKE_SED, object [,nir_scale, /FNU, /PS, /NORM, OFFSET=offset, /NOOPT]'
+;     print,'object is number, /FNU for mJy, /PS to make PS output'
+;     return
+;endif
+
+;CALLS
+; kellepro:norm_spec
+; kellepro:kreadspec
+; spextool:readspec
+
+;scale factors were determined using xmc_fluxcal written by mike cushing
+
+IF N_elements(nir_scale) EQ 0 THEN BEGIN
+   CASE OBJ OF
+      '10151': nir_scale = 0.77
+      '20925': nir_scale = 0.3      
+      '20744': nir_scale =  0.75
+      '12220': nir_scale =  1.5
+      '12054': nir_scale =  0.82
+      '11756': nir_scale =  0.61
+      '20336': nir_scale =  1.0
+      '10287': nir_scale =  0.47
+      '10390': nir_scale =  0.59
+      '10151': nir_scale =  0.77
+      '10617': nir_scale =  0.67
+      '20587': nir_scale =  9.1 
+      '10088': nir_scale =  1.1 
+      '20925': nir_scale =  0.3 
+      ELSE : nir_scale = 1 
+   ENDCASE
+ENDIF
+
+;print, 'NIR SCALE: ',nir_scale
+
+opt_dir='/scr/kelle/optical_spectra/2M_all/fits'
+nir_dir='/scr3/kelle/nir_spectra/2M_all/fits'
+ir_dir='/scr3/mvg/irsdata/S13.2/idl_output'
+
+opt_spec_path=GET_FILE(obj, opt_dir,str='fits')
+nir_spec_path=GET_FILE(obj, nir_dir,str='fits')
+ir_spec_path=GET_FILE(obj, ir_dir,str='fits')
+
+startw_opt = 0.81 & endw_opt = 0.83
+
+;READ OPTICAL SPECTRUM
+;ergs/s/cm^2/A
+opt_spec=KREADSPEC(opt_spec_path,hdr_opt);,/silent
+yunits = strcompress(fxpar(hdr_opt,'BUNIT'),/RE)
+print, 'optical units: ',yunits
+w_opt = opt_spec[0,*]/10000. ; convert to microns
+f_opt = opt_spec[1,*]
+
+;READ NIR SPECTRUM
+;ergs/s/cm^2/A
+;readspec is Spex tool:
+READSPEC, nir_spec_path, nir_spec,hdr_nir;,/silent
+;nir_spec=READFITS(nir_spec_path,hdr_nir)
+yunits = strcompress(fxpar(hdr_nir,'YUNITS'),/RE)
+print, 'nir units: ', yunits
+IF yunits NE 'ergss-1cm-2A-1' THEN print, 'UNITS WRONG!!!'
+w_nir = nir_spec[*,0]
+f_nir = nir_spec[*,1]*nir_scale
+
+;scale optical to match nir at 0.8 microns
+nir_norm=NORM_SPEC(w_nir, f_nir, startw_opt, endw_opt, /num)
+opt_norm=NORM_SPEC(w_opt, f_opt, startw_opt, endw_opt, /num)
+f_opt = f_opt * nir_norm/opt_norm
+
+;CONVERT TO mJY
+IF keyword_set(fnu) THEN begin
+ f_opt = (f_opt * w_opt^2 / 3e-13)*1e3
+ f_nir = (f_nir * w_nir^2 / 3e-13)*1e3
+ yunits='mJy'
+ENDIF
+
+;READ IR spectrum
+;way to get maggies data: restore, ir_spec_path
+ir_spec=READFITS(ir_spec_path,hdr_ir,/silent)
+w_ir = ir_spec[0,*]
+f_ir = ir_spec[1,*]
+
+;convert IR spectrum to ergs/s/cm^2/A
+;from eqn. A.2. on p. 234 of some Spitzer handbook
+IF ~KEYWORD_SET(fnu) THEN f_ir=f_ir * 3e-13 / w_ir^2
+IF KEYWORD_SET(fnu) THEN f_ir=f_ir * 1e3 ;convert to mJy
+
+IF KEYWORD_SET(norm) THEN BEGIN
+   IF KEYWORD_SET(fnu) THEN BEGIN
+      startw= 2.1 & endw= 2.3
+   ENDIF ELSE BEGIN
+      startw = 1.27 & endw = 1.32
+   ENDELSE
+  norm_cnst=NORM_SPEC(w_nir, f_nir, startw, endw,/num)
+  f_nir = f_nir/norm_cnst
+  f_opt = f_opt/norm_cnst
+  f_ir = f_ir/norm_cnst
+ENDIF
+
+END

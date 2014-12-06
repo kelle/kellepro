@@ -1,0 +1,31 @@
+Allers07,H20_A07,1.55,1.56,1.492,1.502
+Allers07,Na,1.15,1.16,1.134,1.144
+Burgasser06,H20J,1.140,1.165,1.260,1.285
+Burgasser06,H20H,1.480,1.520,1.560,1.600
+Burgasser06,CH4K,2.215,2.255,2.080,2.120
+ModMcLean03,FeH-z,0.965, 0.985, 0.990, 1.01
+#Geballe02,Continuum,1.04, 1.05,0.875, 0.885,
+#Geballe02,H2O_1.2,1.26, 1.29,1.13, 1.
+#Geballe02,H2O_1.5G,1.57, 1.59,1.46, 1.48
+#Geballe02,CH_1.6',1.56, 1.60,1.635, 1.675
+#Geballe02,H2O_2.0,2.09, 2.11,1.975, 1.995
+#Geballe02,CH_2.2,2.08, 2.12,2.215, 2.255
+#McLean03,H2OA,1.341, 1.345,1.311, 1.315
+#McLean03,H2OB,1.454, 1.458,1.568, 1.572
+#McLean03,H2OC,1.786, 1.790,1.720, 1.724
+#McLean03,H2OD,1.962, 1.966,2.073, 2.077
+#McLean03,CH4A,1.728, 1.732,1.588, 1.592
+#McLean03,CH4B,2.198, 2.202,2.098, 2.102
+#McLean03,CO,2.298, 2.302,2.283, 2.287
+#McLean03,FeH-J,1.198, 1.202,1.183, 1.187
+#McLeas03,FeH-z,0.984, 0.988, 0.990, 0.994
+#num and den switched from McLean definition
+#;-----------
+#; My VO
+#;-----------
+#name[i]='VOA',1.088, 1.094, 1.055, 1.061
+#name[i]='VOB'
+#num1  = avgflux(1.15, 1.16, wavelength, flux)
+#num2 = avgflux(1.22, 1.23, wavelength, flux)
+#den = avgflux(1.18, 1.20, wavelength, flux)
+#index[i] = strtrim(string((num1+num2)/2/den),1)

@@ -1,0 +1,17 @@
+PRO bmask_fix
+
+path='/data/hillary/3/kelle/ir_spectra/irs/S12/skysub'
+
+files=DIALOG_PICKFILE(/MULTIPLE_FILES,PATH=path, FILTER='*.bmask.fits')
+
+IF n_elements(files) = -1 THEN nfiles=0 ELSE nfiles= n_elements(files)
+
+mask=intarr(nfiles,128,128)
+h=strarr(nfiles,13)
+
+FOR i = 0,nfiles-1 DO BEGIN
+
+m[i,*,*]=READFITS(files[i],h[i]
+
+ENDFOR
+
